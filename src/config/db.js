@@ -29,6 +29,8 @@ let pool = null;
 async function getPool() {
   if (pool) return pool;
 
+  const sslNeeded = process.env.DB_HOST && process.env.DB_HOST !== '127.0.0.1' && process.env.DB_HOST !== 'localhost';
+
   const config = {
     host: process.env.DB_HOST || '127.0.0.1',
     port: parseInt(process.env.DB_PORT || '3306'),
@@ -37,7 +39,8 @@ async function getPool() {
     database: process.env.DB_NAME || 'maphy_db',
     waitForConnections: true,
     connectionLimit: 10,
-    queueLimit: 0
+    queueLimit: 0,
+    ssl: sslNeeded ? { rejectUnauthorized: false } : undefined
   };
 
   // Create pool
@@ -47,17 +50,26 @@ async function getPool() {
 
 async function initializeDatabase() {
   try {
+    const sslNeeded = process.env.DB_HOST && process.env.DB_HOST !== '127.0.0.1' && process.env.DB_HOST !== 'localhost';
+
     // 1. Establish connection to server first (in case database doesn't exist)
     const conn = await mysql.createConnection({
       host: process.env.DB_HOST || '127.0.0.1',
       port: parseInt(process.env.DB_PORT || '3306'),
       user: process.env.DB_USER || 'root',
-      password: process.env.DB_PASSWORD || ''
+      password: process.env.DB_PASSWORD || '',
+      ssl: sslNeeded ? { rejectUnauthorized: false } : undefined
     });
 
     const dbName = process.env.DB_NAME || 'maphy_db';
-    console.log(`Verifying/Creating database "${dbName}"...`);
-    await conn.query(`CREATE DATABASE IF NOT EXISTS \`${dbName}\`;`);
+    
+    try {
+      console.log(`Verifying/Creating database "${dbName}"...`);
+      await conn.query(`CREATE DATABASE IF NOT EXISTS \`${dbName}\`;`);
+    } catch (dbErr) {
+      console.warn(`[DB WARNING] Could not run CREATE DATABASE query (this is normal on cloud providers like Aiven):`, dbErr.message);
+    }
+    
     await conn.end();
 
     // 2. Get connection pool for the specific database
