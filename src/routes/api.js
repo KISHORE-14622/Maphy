@@ -25,6 +25,7 @@ const inventoryController = require('../controllers/inventoryController');
 const ticketController = require('../controllers/ticketController');
 const operationsController = require('../controllers/operationsController');
 const { makeGenericController } = require('../controllers/genericController');
+const maintenanceController = require('../controllers/maintenanceController');
 
 // Helper to register generic routes
 const registerGenericRoutes = (routePath, tableName, searchColumns) => {
@@ -147,6 +148,137 @@ router.post('/labels', operationsController.updateLabels);
 router.get('/slack', operationsController.getSlack);
 router.post('/slack', operationsController.updateSlack);
 
+// 7. Maintenances CRUD
+router.get('/maintenances', maintenanceController.getAll);
+router.get('/maintenances/:id', maintenanceController.getById);
+router.post('/maintenances', maintenanceController.create);
+router.put('/maintenances/:id', maintenanceController.update);
+router.delete('/maintenances/:id', maintenanceController.remove);
+
+// 8. Custom Categories selectList by type
+const categoriesCtrl = makeGenericController('categories', ['name', 'category_type']);
+router.get('/categories/selectList/:type', (req, res) => {
+  req.query.category_type = req.params.type;
+  categoriesCtrl.getSelectList(req, res);
+});
+
+// 9. Custom Reports
+router.get('/reports/licenses', async (req, res) => {
+  try {
+    const { getPool } = require('../config/db');
+    const pool = await getPool();
+    const limit = parseInt(req.query.limit) || 10;
+    const offset = parseInt(req.query.offset) || 0;
+    const search = req.query.search || '';
+    let sort = req.query.sort || 'id';
+    const order = req.query.order === 'asc' ? 'ASC' : 'DESC';
+    if (sort === 'license') sort = 'name';
+    
+    let whereClause = ' WHERE 1=1';
+    let queryParams = [];
+    if (search) {
+      whereClause += ' AND (name LIKE ? OR license_email LIKE ? OR license_name LIKE ?)';
+      queryParams.push(`%${search}%`, `%${search}%`, `%${search}%`);
+    }
+    
+    const [[{ total }]] = await pool.query(`SELECT COUNT(*) as total FROM licenses ${whereClause}`, queryParams);
+    const [rows] = await pool.query(
+      `SELECT *, 
+              (seats - (SELECT COUNT(*) FROM license_assignments WHERE license_id = licenses.id)) as free_seats_count 
+       FROM licenses 
+       ${whereClause} 
+       ORDER BY ${sort} ${order} 
+       LIMIT ? OFFSET ?`,
+      [...queryParams, limit, offset]
+    );
+    
+    res.status(200).json({ success: true, rows, total });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: 'Reports error' });
+  }
+});
+
+router.get('/reports/components', async (req, res) => {
+  try {
+    const { getPool } = require('../config/db');
+    const pool = await getPool();
+    const limit = parseInt(req.query.limit) || 10;
+    const offset = parseInt(req.query.offset) || 0;
+    const search = req.query.search || '';
+    let sort = req.query.sort || 'id';
+    const order = req.query.order === 'asc' ? 'ASC' : 'DESC';
+    if (sort === 'Componentsname') sort = 'name';
+    
+    let whereClause = ' WHERE 1=1';
+    let queryParams = [];
+    if (search) {
+      whereClause += ' AND name LIKE ?';
+      queryParams.push(`%${search}%`);
+    }
+    
+    const [[{ total }]] = await pool.query(`SELECT COUNT(*) as total FROM components ${whereClause}`, queryParams);
+    const [rows] = await pool.query(
+      `SELECT *, 
+              min_qty as min_amt,
+              (qty - (SELECT COALESCE(SUM(qty), 0) FROM component_assignments WHERE component_id = components.id)) as remaining 
+       FROM components 
+       ${whereClause} 
+       ORDER BY ${sort} ${order} 
+       LIMIT ? OFFSET ?`,
+      [...queryParams, limit, offset]
+    );
+    
+    res.status(200).json({ success: true, rows, total });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: 'Reports error' });
+  }
+});
+
+router.get('/reports/consumables', async (req, res) => {
+  try {
+    const { getPool } = require('../config/db');
+    const pool = await getPool();
+    const limit = parseInt(req.query.limit) || 10;
+    const offset = parseInt(req.query.offset) || 0;
+    const search = req.query.search || '';
+    let sort = req.query.sort || 'id';
+    const order = req.query.order === 'asc' ? 'ASC' : 'DESC';
+    if (sort === 'Consumablename') sort = 'name';
+    
+    let whereClause = ' WHERE 1=1';
+    let queryParams = [];
+    if (search) {
+      whereClause += ' AND name LIKE ?';
+      queryParams.push(`%${search}%`);
+    }
+    
+    const [[{ total }]] = await pool.query(`SELECT COUNT(*) as total FROM consumables ${whereClause}`, queryParams);
+    const [rows] = await pool.query(
+      `SELECT *, 
+              min_qty as min_amt,
+              (qty - (SELECT COALESCE(SUM(qty), 0) FROM consumable_assignments WHERE consumable_id = consumables.id)) as remaining 
+       FROM consumables 
+       ${whereClause} 
+       ORDER BY ${sort} ${order} 
+       LIMIT ? OFFSET ?`,
+      [...queryParams, limit, offset]
+    );
+    
+    res.status(200).json({ success: true, rows, total });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: 'Reports error' });
+  }
+});
+
+const depreciationsCtrl = makeGenericController('depreciations', ['name']);
+router.get('/reports/depreciations', (req, res) => {
+  if (req.query.sort === 'Depreciationname') req.query.sort = 'name';
+  depreciationsCtrl.getAll(req, res);
+});
+
 // 6. Generic Routes Registry
 registerGenericRoutes('/suppliers', 'suppliers', ['name', 'city', 'state', 'country', 'contact_name']);
 registerGenericRoutes('/statuslabels', 'status_labels', ['name', 'type']);
@@ -160,6 +292,7 @@ registerGenericRoutes('/ticketissues', 'ticket_issues', ['name']);
 registerGenericRoutes('/scrapsale', 'scrapsales', ['notes']);
 registerGenericRoutes('/groups', 'groups', ['name']);
 registerGenericRoutes('/talentGroup', 'talent_groups', ['name', 'description']);
+registerGenericRoutes('/talentGroups', 'talent_groups', ['name', 'description']);
 registerGenericRoutes('/users', 'users', ['first_name', 'last_name', 'email', 'username']);
 registerGenericRoutes('/models', 'asset_models', ['name', 'model_number']);
 

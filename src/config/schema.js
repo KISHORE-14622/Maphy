@@ -405,6 +405,23 @@ const SCHEMAS = [
     \`status\` varchar(50) DEFAULT 'pending',
     \`created_at\` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (\`id\`)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`,
+
+  // 30. maintenances
+  `CREATE TABLE IF NOT EXISTS \`maintenances\` (
+    \`id\` int(11) NOT NULL AUTO_INCREMENT,
+    \`asset_id\` int(11) DEFAULT NULL,
+    \`supplier_id\` int(11) DEFAULT NULL,
+    \`asset_maintenance_type\` varchar(255) DEFAULT NULL,
+    \`title\` varchar(255) DEFAULT NULL,
+    \`start_date\` date DEFAULT NULL,
+    \`completion_date\` date DEFAULT NULL,
+    \`is_warranty\` tinyint(4) DEFAULT '0',
+    \`cost\` decimal(10,2) DEFAULT NULL,
+    \`notes\` text DEFAULT NULL,
+    \`created_at\` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    \`updated_at\` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (\`id\`)
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`
 ];
 
