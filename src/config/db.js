@@ -215,11 +215,11 @@ async function seedDefaultData(dbPool) {
       console.log('Seeding default status labels...');
       await dbPool.query(
         'INSERT INTO status_labels (id, name, type, notes) VALUES ' +
-        '(1, "Ready to Deploy", "deployable", "Asset can be checked out immediately"),' +
-        '(2, "Deployed", "deployable", "Asset is currently checked out to a user/location"),' +
-        '(3, "Archived", "archived", "Asset cannot be checked out (historical data)"),' +
-        '(4, "Pending", "pending", "Asset is awaiting setup or validation"),' +
-        '(5, "Broken", "undeployable", "Asset is damaged and requires repair")'
+        '(1, \'Ready to Deploy\', \'deployable\', \'Asset can be checked out immediately\'),' +
+        '(2, \'Deployed\', \'deployable\', \'Asset is currently checked out to a user/location\'),' +
+        '(3, \'Archived\', \'archived\', \'Asset cannot be checked out (historical data)\'),' +
+        '(4, \'Pending\', \'pending\', \'Asset is awaiting setup or validation\'),' +
+        '(5, \'Broken\', \'undeployable\', \'Asset is damaged and requires repair\')'
       );
     }
 
@@ -229,13 +229,13 @@ async function seedDefaultData(dbPool) {
       console.log('Seeding default categories...');
       await dbPool.query(
         'INSERT INTO categories (id, name, category_type) VALUES ' +
-        '(1, "Laptops", "asset"),' +
-        '(2, "Keyboards", "accessory"),' +
-        '(3, "Printers", "asset"),' +
-        '(4, "Monitors", "asset"),' +
-        '(5, "Software Licences", "license"),' +
-        '(6, "RAM Modules", "component"),' +
-        '(7, "Printer Ink cartridges", "consumable")'
+        '(1, \'Laptops\', \'asset\'),' +
+        '(2, \'Keyboards\', \'accessory\'),' +
+        '(3, \'Printers\', \'asset\'),' +
+        '(4, \'Monitors\', \'asset\'),' +
+        '(5, \'Software Licences\', \'license\'),' +
+        '(6, \'RAM Modules\', \'component\'),' +
+        '(7, \'Printer Ink cartridges\', \'consumable\')'
       );
     }
 
@@ -245,9 +245,9 @@ async function seedDefaultData(dbPool) {
       console.log('Seeding default settings...');
       await dbPool.query(
         'INSERT INTO settings (setting_key, setting_value) VALUES ' +
-        '("branding", \'{"name":"Maphy Assets","logo":null,"theme":"dark"}\'),' +
-        '("labels", \'{"width":100,"height":50,"show_tag":true}\'),' +
-        '("slack", \'{"webhook_url":"","enabled":0}\')'
+        '(\'branding\', \'{"name":"Maphy Assets","logo":null,"theme":"dark"}\'),' +
+        '(\'labels\', \'{"width":100,"height":50,"show_tag":true}\'),' +
+        '(\'slack\', \'{"webhook_url":"","enabled":0}\')'
       );
     }
 
