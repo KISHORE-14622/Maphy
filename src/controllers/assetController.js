@@ -54,7 +54,7 @@ const getAll = async (req, res) => {
       queryParams.push(company_id);
     }
     if (location_id) {
-      whereClause += ' AND (h.rtd_location_id = ? OR (h.assigned_to = ? AND h.checkout_to_type = "location"))';
+      whereClause += ' AND (h.rtd_location_id = ? OR (h.assigned_to = ? AND h.checkout_to_type = \'location\'))';
       queryParams.push(location_id, location_id);
     }
     if (assigned_to) {
@@ -86,11 +86,11 @@ const getAll = async (req, res) => {
     // Specific Route Filters based on path (e.g. deployable, deployed, undeployable)
     const requestPath = req.path;
     if (requestPath.includes('/rtd') || req.query.status_type === 'deployable') {
-      whereClause += ' AND h.assigned_to IS NULL AND sl.type = "deployable"';
+      whereClause += ' AND h.assigned_to IS NULL AND sl.type = \'deployable\'';
     } else if (requestPath.includes('/deployed') || req.query.status_type === 'deployed') {
       whereClause += ' AND h.assigned_to IS NOT NULL';
     } else if (requestPath.includes('/undeployable') || req.query.status_type === 'undeployable') {
-      whereClause += ' AND sl.type != "deployable"';
+      whereClause += ' AND sl.type != \'deployable\'';
     }
 
     // Get total count
@@ -482,7 +482,7 @@ const checkout = async (req, res) => {
 
     // Update hardware assignment columns
     await pool.query(
-      'UPDATE hardware SET checkout_to_type = ?, assigned_to = ?, status_id = (SELECT id FROM status_labels WHERE type = "deployable" LIMIT 1) WHERE id = ?',
+      'UPDATE hardware SET checkout_to_type = ?, assigned_to = ?, status_id = (SELECT id FROM status_labels WHERE type = \'deployable\' LIMIT 1) WHERE id = ?',
       [checkout_to_type, assignedId, id]
     );
 
@@ -546,7 +546,7 @@ const bulkCheckout = async (req, res) => {
 
     for (const assetId of selected_assets) {
       await pool.query(
-        'UPDATE hardware SET checkout_to_type = ?, assigned_to = ?, status_id = (SELECT id FROM status_labels WHERE type = "deployable" LIMIT 1) WHERE id = ?',
+        'UPDATE hardware SET checkout_to_type = ?, assigned_to = ?, status_id = (SELECT id FROM status_labels WHERE type = \'deployable\' LIMIT 1) WHERE id = ?',
         [checkout_to_type, assignedId, assetId]
       );
 
@@ -627,7 +627,7 @@ const approveAgentAsset = async (req, res) => {
 
     // 2. Mark agent record as approved
     await pool.query(
-      'UPDATE agent_telemetry_assets SET status = "approved" WHERE id = ?',
+      'UPDATE agent_telemetry_assets SET status = \'approved\' WHERE id = ?',
       [id]
     );
 
