@@ -569,7 +569,7 @@ const getPendingAgentAssets = async (req, res) => {
   const search = req.query.search || '';
   try {
     const pool = await getPool();
-    let query = 'SELECT * FROM agent_telemetry_assets WHERE status = "pending"';
+    let query = 'SELECT * FROM agent_telemetry_assets WHERE status = \'pending\'';
     let params = [];
 
     if (search) {
@@ -667,7 +667,7 @@ const agentImportTelemetry = async (req, res) => {
 
     // Check if report with same serial already exists in pending
     const [existing] = await pool.query(
-      'SELECT id FROM agent_telemetry_assets WHERE serial = ? AND status = "pending"',
+      'SELECT id FROM agent_telemetry_assets WHERE serial = ? AND status = \'pending\'',
       [serial]
     );
 
@@ -682,7 +682,7 @@ const agentImportTelemetry = async (req, res) => {
       await pool.query(
         `INSERT INTO agent_telemetry_assets 
          (hostname, serial, cpu, ram, disk, motherboard, manufacturer, model, mac_address, ip_address, logged_user, status)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, "pending")`,
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
         [hostname, serial, cpu, ram, disk, motherboard, manufacturer, model, mac_address, ip_address, logged_user]
       );
     }
